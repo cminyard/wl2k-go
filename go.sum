@@ -2,6 +2,8 @@ github.com/albenik/go-serial/v2 v2.6.1 h1:AhVjPVegSa/loFUmaIPNdhbeL/+6b+pCNgeCJ9
 github.com/albenik/go-serial/v2 v2.6.1/go.mod h1:sqQA6eeZHKUB6rAgrBsP/8d3Go5Md5cjCof1WcyaK0o=
 github.com/creack/goselect v0.1.3 h1:MaGNMclRo7P2Jl21hBpR1Cn33ITSbKP6E49RtfblLKc=
 github.com/creack/goselect v0.1.3/go.mod h1:a/NhLweNvqIYMuxcMOuWY516Cimucms3DglDzQP3hKY=
+github.com/cminyard/go/gensio v0.2.0 h1:VvzzKVscFxbBOEf0SSZPF7nAfSs+pkOcCIimn2hz5Ks=
+github.com/cminyard/go/gensio v0.2.0/go.mod h1:2vwS3wYb5HsrdJVSSbwfRU+Ryc41ZS8lVN4UooRJEAA=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c h1:P6XGcuPTigoHf4TSu+3D/7QOQ1MbL6alNwrGhcW7sKw=
