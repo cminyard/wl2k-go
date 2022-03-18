@@ -42,6 +42,7 @@ var DefaultDialer = &Dialer{Timeout: 45 * time.Second}
 func init() {
 	transport.RegisterDialer("ax25", DefaultDialer)
 	transport.RegisterDialer("serial-tnc", DefaultDialer)
+	transport.RegisterDialer("gax25", DefaultDialer)
 }
 
 type addr interface {
@@ -147,6 +148,9 @@ func (d Dialer) DialURL(url *transport.URL) (net.Conn, error) {
 			NewConfig(hbaud, serialBaud),
 			nil,
 		)
+	case "gax25":
+		return DialGensioAX25(url.Host, url.User.Username(), target,
+			d.Timeout)
 	default:
 		return nil, transport.ErrUnsupportedScheme
 	}
