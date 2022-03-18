@@ -43,6 +43,7 @@ var DefaultDialer = &Dialer{Timeout: 45 * time.Second}
 func init() {
 	transport.RegisterDialer("ax25", DefaultDialer)
 	transport.RegisterDialer("serial-tnc", DefaultDialer)
+	transport.RegisterDialer("gax25", DefaultDialer)
 }
 
 type addr interface {
@@ -165,6 +166,15 @@ func (d Dialer) DialURLContext(ctx context.Context, url *transport.URL) (net.Con
 			NewConfig(hbaud, serialBaud),
 			nil,
 		)
+	case "gax25":
+		ctx, cancel := context.WithTimeout(ctx, d.Timeout)
+		defer cancel()
+		conn, err := DialGensioAX25Context(ctx, url.Host, url.User.Username(), target, url.Params.Get("parms"))
+		if err != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			// Local timeout reached.
+			err = fmt.Errorf("Dial timeout")
+		}
+		return conn, err
 	default:
 		return nil, transport.ErrUnsupportedScheme
 	}
