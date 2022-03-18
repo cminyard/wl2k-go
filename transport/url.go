@@ -30,6 +30,9 @@ type URL struct {
 
 	// List of query parameters.
 	Params url.Values
+
+	// Where script files are stored.
+	Scripts string
 }
 
 // ParseURL parses a raw urlstring into an URL.

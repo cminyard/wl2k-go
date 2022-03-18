@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"path/filepath"
 
 	"github.com/la5nta/wl2k-go/transport"
 )
@@ -44,6 +45,7 @@ func init() {
 	transport.RegisterDialer("serial-tnc", DefaultDialer)
 	transport.RegisterDialer("ax25+linux", DefaultDialer)
 	transport.RegisterDialer("ax25+serial-tnc", DefaultDialer)
+	transport.RegisterDialer("ax25+gensio", DefaultDialer)
 }
 
 type addr interface {
@@ -121,7 +123,7 @@ type Dialer struct {
 	Timeout time.Duration
 }
 
-// DialURL dials ax25://, ax25+linux://, serial-tnc:// and ax25+serial-tnc:// URLs.
+// DialURL dials ax25://, ax25+linux://, serial-tnc://, ax25+gensio://, and ax25+serial-tnc:// URLs.
 //
 // See DialURLContext.
 func (d Dialer) DialURL(url *transport.URL) (net.Conn, error) {
@@ -166,6 +168,29 @@ func (d Dialer) DialURLContext(ctx context.Context, url *transport.URL) (net.Con
 			NewConfig(hbaud, serialBaud),
 			nil,
 		)
+	case "ax25+gensio":
+		ctx, cancel := context.WithTimeout(ctx, d.Timeout)
+		defer cancel()
+		script := url.Params.Get("script")
+
+		if len(script) > 0 {
+			if len(url.Scripts) == 0 {
+				return nil, fmt.Errorf("No script dirctory given")
+			}
+			script = filepath.Join(url.Scripts, script);
+			script = filepath.Clean(script);
+			if !strings.HasPrefix(script, url.Scripts) {
+				// User used "../' to go outside script directory.
+				return nil, fmt.Errorf("script path went outside script directory")
+			}
+		}
+
+		conn, err := DialGensioAX25Context(ctx, url.Host, url.User.Username(), target, url.Params.Get("parms"), script)
+		if err != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			// Local timeout reached.
+			err = fmt.Errorf("Dial timeout")
+		}
+		return conn, err
 	default:
 		return nil, transport.ErrUnsupportedScheme
 	}
