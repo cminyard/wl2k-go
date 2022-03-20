@@ -28,19 +28,32 @@ var gax25_listeners uint = 0
 var gax25str string
 var gax25call string
 var gax25 gensio.Gensio = nil
-var gax25o *gensio.OsFuncs = gensio.NewOsFuncs(0, &GensioLogHandler{})
+var gax25o *gensio.OsFuncs = gensio.NewOsFuncs(&GensioLogHandler{})
 var gax25Wait *gensio.Waiter = gensio.NewWaiter(gax25o)
-var gax25Accepts chan gensio.Gensio = make(chan gensio.Gensio, 10)
+var gax25Accepts chan *GConn = make(chan *GConn, 10)
 
 type gevent struct {
 	gensio.EventBase
 }
 
-func (e *gevent) newChannel(new_channel gensio.Gensio, auxdata []string) int {
-	if gax25_listeners == 0 {
+func (e *gevent) NewChannel(new_channel gensio.Gensio, auxdata []string) int {
+	var addr string
+	for _, a := range(auxdata) {
+		if a[0:5] == "addr:" {
+			addr = a[5:]
+			break;
+		}
+	}
+	if len(addr) == 0 || gax25_listeners == 0 {
 		return gensio.GE_NOTSUP
 	} else {
-		gax25Accepts <- new_channel
+		gc := &GConn{}
+		gc.g = new_channel
+		// Can't create the Conn from the gensio here, we are
+		// in a callback and SetSync() requires all callbackes
+		// to be complete before returning.
+		gc.remoteAddr = addr
+		gax25Accepts <- gc
 		return 0
 	}
 }
@@ -105,7 +118,10 @@ type destroyer interface {
 // Also so we can GC this.
 type GConn struct {
 	gc *gensio.Conn
+	g gensio.Gensio
 	closed bool
+	localAddr string
+	remoteAddr string
 }
 
 func (c *GConn) Read(b []byte) (n int, err error) {
@@ -130,11 +146,11 @@ func (c *GConn) Close() (err error) {
 }
 
 func (c *GConn) LocalAddr() net.Addr {
-	return c.gc.LocalAddr()
+	return gensio.NewAx25NetAddr(c.localAddr)
 }
 
 func (c *GConn) RemoteAddr() net.Addr {
-	return c.gc.RemoteAddr()
+	return gensio.NewAx25NetAddr(c.remoteAddr)
 }
 
 func (c *GConn) SetDeadline(t time.Time) error {
@@ -177,6 +193,8 @@ func DialGensioAX25(gensiostr, mycall, targetcall string, timeout time.Duration)
 	if err != nil {
 		return nil, err
 	}
+	cg.remoteAddr = targetcall
+	cg.localAddr = mycall
 	c.OpenS()
 	runtime.SetFinalizer(cg, destroyer.destroy)
 	return cg, nil
@@ -184,6 +202,7 @@ func DialGensioAX25(gensiostr, mycall, targetcall string, timeout time.Duration)
 
 type Listener struct {
 	quit chan bool
+	localAddr string
 }
 
 func (l *Listener) Accept() (rc net.Conn, err error) {
@@ -193,21 +212,21 @@ func (l *Listener) Accept() (rc net.Conn, err error) {
 			err = fmt.Errorf("%s", r)
 		}
 	}()
-	cg := &GConn{}
-	var c gensio.Gensio
+	var c *GConn
 	select {
 	case c = <- gax25Accepts:
 
 	case <- l.quit:
 		return nil, fmt.Errorf("%s", "Listener was closed")
 	}
-	cg.gc, err = gensio.DialGensio(c)
+	c.gc, err = gensio.DialGensio(c.g)
 	if err != nil {
-		c.CloseS()
+		c.g.CloseS()
 		return nil, err
 	}
-	runtime.SetFinalizer(cg, destroyer.destroy)
-	return cg, nil
+	c.localAddr = l.localAddr
+	runtime.SetFinalizer(c, destroyer.destroy)
+	return c, nil
 }
 
 func (l *Listener) Close() (err error) {
@@ -218,7 +237,7 @@ func (l *Listener) Close() (err error) {
 		for {
 			select {
 			case c := <- gax25Accepts:
-				c.CloseS()
+				c.gc.Close()
 			default:
 				break
 			}
@@ -230,8 +249,7 @@ func (l *Listener) Close() (err error) {
 }
 
 func (l *Listener) Addr() net.Addr {
-	// FIXME - do we need this?
-	return nil
+	return gensio.NewAx25NetAddr(l.localAddr)
 }
 
 func (l *Listener) destroy() {
@@ -239,8 +257,10 @@ func (l *Listener) destroy() {
 }
 
 func ListenGensioAX25(gensiostr, mycall string) (rc net.Listener, err error) {
+	fmt.Printf("Setting up listener: '%s', '%s'\n", gensiostr, mycall)
 	l := &Listener{}
 	l.quit = make(chan bool)
+	l.localAddr = mycall
 	getBaseGensio(gensiostr, mycall)
 	defer func() {
 		if r := recover(); r != nil {
