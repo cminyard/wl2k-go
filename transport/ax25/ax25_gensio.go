@@ -138,7 +138,7 @@ func (c *GConn) Write(b []byte) (n int, err error) {
 }
 
 func (c *GConn) Close() (err error) {
-	if c.gc == nil {
+	if c.closed {
 		return errors.New("Connection is closed")
 	}
 	err = c.gc.Close()
@@ -230,6 +230,9 @@ func (l *Listener) Accept() (rc net.Conn, err error) {
 		return nil, err
 	}
 	c.localAddr = l.localAddr
+	gmutex.Lock()
+	gax25_refcount++
+	gmutex.Unlock()
 	runtime.SetFinalizer(c, destroyer.destroy)
 	return c, nil
 }
