@@ -11,6 +11,7 @@ import (
 	"errors"
 	"sync"
 	"runtime"
+	"strings"
 	"github.com/cminyard/go/gensio"
 )
 
@@ -52,7 +53,11 @@ func (e *gevent) NewChannel(new_channel gensio.Gensio, auxdata []string) int {
 		// Can't create the Conn from the gensio here, we are
 		// in a callback and SetSync() requires all callbackes
 		// to be complete before returning.
-		gc.remoteAddr = addr
+		ss := strings.Split(addr, ",")
+		if len(ss) < 2 {
+			return gensio.GE_NOTSUP
+		}
+		gc.remoteAddr = ss[1]
 		gax25Accepts <- gc
 		return 0
 	}
@@ -234,12 +239,13 @@ func (l *Listener) Close() (err error) {
 	l.quit <- true
 	gax25_listeners--
 	if gax25_listeners == 0 {
-		for {
+		done := false
+		for !done {
 			select {
 			case c := <- gax25Accepts:
 				c.gc.Close()
 			default:
-				break
+				done = true
 			}
 		}
 	}
