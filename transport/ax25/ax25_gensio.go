@@ -40,7 +40,7 @@ type gevent struct {
 func (e *gevent) NewChannel(new_channel gensio.Gensio, auxdata []string) int {
 	var addr string
 	for _, a := range(auxdata) {
-		if a[0:5] == "addr:" {
+		if len(a) > 5 && a[0:5] == "addr:" {
 			addr = a[5:]
 			break;
 		}
@@ -61,6 +61,38 @@ func (e *gevent) NewChannel(new_channel gensio.Gensio, auxdata []string) int {
 		gax25Accepts <- gc
 		return 0
 	}
+}
+
+var gensioHeardMutex sync.Mutex
+var gensioHeard map[string]time.Time = make(map[string]time.Time)
+
+// UI frames come in here
+func (e *gevent) Read(err int, data []byte, auxdata []string) uint64 {
+	oobfound := false
+	srcaddrfound := false
+	var srcaddr string
+	for _, s := range(auxdata) {
+		if s == "oob" {
+			oobfound = true
+		}
+		if len(s) > 5 && s[0:5] == "addr:" {
+			srcaddr = s[5:]
+			srcaddrfound = true
+		}
+	}
+	if (!oobfound || !srcaddrfound) {
+		return uint64(len(data))
+	}
+	ss := strings.Split(srcaddr, ",")
+	if (len(ss) < 3) {
+		return uint64(len(data))
+	}
+	srcaddr = ss[2]
+
+	gensioHeardMutex.Lock()
+	gensioHeard[srcaddr] = time.Now()
+	gensioHeardMutex.Unlock()
+	return uint64(len(data))
 }
 
 func gLoop() {
@@ -94,6 +126,9 @@ func getBaseGensio(gensiostr, mycall string) (g gensio.Gensio, err error) {
 		gax25call = mycall
 		gax25 = g
 		gax25_refcount = 1
+		g.SetReadCallbackEnable(true)
+		g.Control(0, false, gensio.GENSIO_CONTROL_ENABLE_OOB,
+			[]byte("2"))
 		go gLoop()
 	}
 	gmutex.Unlock()
