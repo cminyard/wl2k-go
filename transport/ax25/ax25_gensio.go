@@ -102,6 +102,18 @@ func gLoop() {
 func getBaseGensio(gensiostr, mycall string) (g gensio.Gensio, err error) {
 	err = nil
 	g = nil
+	extraparms := ""
+
+	if strings.HasPrefix(gensiostr, "(") {
+		// Parameters for ax25
+		end := strings.Index(gensiostr, ")")
+		if end == -1 {
+			return nil, fmt.Errorf("gensio string parameters invalid")
+		}
+		extraparms = gensiostr[0:end]
+		extraparms = strings.Replace(extraparms, "(", ",", 1)
+		gensiostr = gensiostr[end + 1:]
+	}
 
 	gmutex.Lock()
 	if gax25 != nil {
@@ -119,7 +131,7 @@ func getBaseGensio(gensiostr, mycall string) (g gensio.Gensio, err error) {
 				err = fmt.Errorf("%s", r)
 			}
 		}()
-		s := fmt.Sprintf("ax25(laddr=%s),%s", mycall, gensiostr)
+		s := fmt.Sprintf("ax25(laddr=%s%s),%s", mycall, extraparms, gensiostr)
 		g = gensio.NewGensio(s, gax25o, &gevent{})
 		g.OpenS()
 		gax25str = gensiostr
