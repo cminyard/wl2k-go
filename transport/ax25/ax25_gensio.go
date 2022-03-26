@@ -225,6 +225,14 @@ func (c *GConn) destroy() {
 }
 
 func DialGensioAX25(gensiostr, mycall, targetcall string, timeout time.Duration) (rc net.Conn, err error) {
+	// Split up the target call into individual calls
+	addrs := strings.Split(targetcall, " ")
+	targetcall = addrs[0]
+	route := ""
+	for i := 2; i < len(addrs); i++ {
+		route = fmt.Sprintf("%s,%s", route, addrs[i])
+	}
+
 	g, err := getBaseGensio(gensiostr, mycall)
 	if err != nil {
 		return nil, err
@@ -239,7 +247,7 @@ func DialGensioAX25(gensiostr, mycall, targetcall string, timeout time.Duration)
 
 	cg := &GConn{}
 	args := []string{
-		fmt.Sprintf("addr=0,%s,%s", targetcall, mycall),
+		fmt.Sprintf("addr=0,%s,%s%s", targetcall, mycall, route),
 	}
 	c := g.AllocChannel(args, &gevent{})
 	cg.gc, err = gensio.DialGensio(c)
