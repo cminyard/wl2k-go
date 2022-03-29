@@ -150,7 +150,7 @@ func (d Dialer) DialURL(url *transport.URL) (net.Conn, error) {
 		)
 	case "gax25":
 		return DialGensioAX25(url.Host, url.User.Username(), target,
-			d.Timeout)
+			d.Timeout, url.Params.Get("parms"))
 	default:
 		return nil, transport.ErrUnsupportedScheme
 	}
