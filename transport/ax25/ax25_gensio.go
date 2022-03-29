@@ -247,7 +247,10 @@ func DialGensioAX25(gensiostr, mycall, targetcall string,
 	}()
 
 	cg := &GConn{}
-	sparms := strings.Split(parms, ",")
+	sparms := []string{}
+	if len(parms) > 0 {
+		sparms = strings.Split(parms, ",")
+	}
 	args := make([]string, 1 + len(sparms))
 	args[0] = fmt.Sprintf("addr=0,%s,%s%s", targetcall, mycall, route)
 	for i, v := range(sparms) {
