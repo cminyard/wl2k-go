@@ -198,6 +198,18 @@ func (c *GConn) Close() (err error) {
 	return nil
 }
 
+func (c *GConn) Open() (err error) {
+	err = nil
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("%s", r)
+		}
+	}()
+	g := c.gc.GetGensio()
+	g.OpenS()
+	return err
+}
+
 func (c *GConn) LocalAddr() net.Addr {
 	return gensio.NewAx25NetAddr(c.localAddr)
 }
@@ -264,7 +276,6 @@ func DialGensioAX25(gensiostr, mycall, targetcall string,
 	}
 	cg.remoteAddr = targetcall
 	cg.localAddr = mycall
-	c.OpenS()
 	runtime.SetFinalizer(cg, destroyer.destroy)
 	return cg, nil
 }
