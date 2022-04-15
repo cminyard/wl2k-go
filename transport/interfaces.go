@@ -35,3 +35,11 @@ type PTTController interface {
 type Dialer interface {
 	DialURL(url *URL) (net.Conn, error)
 }
+
+// If one of these is returned from DialURL, it will not be opened, you
+// must call the open later.  This lets the connection be stored so the
+// operation can be cancelled while the open is in progress.
+type OpenNetConn interface {
+	net.Conn
+	Open() error
+}
