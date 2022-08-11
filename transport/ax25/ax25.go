@@ -169,7 +169,7 @@ func (d Dialer) DialURLContext(ctx context.Context, url *transport.URL) (net.Con
 	case "gax25":
 		ctx, cancel := context.WithTimeout(ctx, d.Timeout)
 		defer cancel()
-		conn, err := DialGensioAX25Context(ctx, url.Host, url.User.Username(), target, url.Params.Get("parms"))
+		conn, err := DialGensioAX25Context(ctx, url.Host, url.User.Username(), target, url.Params.Get("parms"), url.Params.Get("script"))
 		if err != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			// Local timeout reached.
 			err = fmt.Errorf("Dial timeout")
