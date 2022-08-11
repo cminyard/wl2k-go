@@ -234,7 +234,7 @@ func doneAX25Gensio(g gensio.Gensio, ctx context.Context, closechan <- chan int)
 }
 
 func DialGensioAX25Context(ctx context.Context,
-	gensiostr, mycall, targetcall, parms string) (rc net.Conn, err error) {
+	gensiostr, mycall, targetcall, parms, script string) (rc net.Conn, err error) {
 	// Split up the target call into individual calls
 	addrs := strings.Split(targetcall, " ")
 	targetcall = addrs[0]
@@ -269,6 +269,11 @@ func DialGensioAX25Context(ctx context.Context,
 	}
 
 	c := g.AllocChannel(args, &gevent{})
+	if len(script) > 0 {
+		scrstr := fmt.Sprintf("script(script=%s)", script)
+		sg := gensio.NewGensioChild(c, scrstr, gax25o, &gevent{})
+		c = sg
+	}
 	cg.gc, err = gensio.DialGensio(c)
 	if err != nil {
 		return nil, err
