@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/la5nta/wl2k-go/fbb"
-	"github.com/la5nta/wl2k-go/mailbox"
-	"github.com/la5nta/wl2k-go/transport/telnet"
+	"github.com/cminyard/wl2k-go/fbb"
+	"github.com/cminyard/wl2k-go/mailbox"
+	"github.com/cminyard/wl2k-go/transport/telnet"
 )
 
 type Station struct {

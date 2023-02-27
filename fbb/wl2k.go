@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/la5nta/wl2k-go/transport"
+	"github.com/cminyard/wl2k-go/transport"
 )
 
 // ErrConnLost is returned by Session.Exchange if the connection is prematurely closed.

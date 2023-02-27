@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/la5nta/wl2k-go/lzhuf"
+	"github.com/cminyard/wl2k-go/lzhuf"
 )
 
 type PropCode byte

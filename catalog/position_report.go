@@ -11,7 +11,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/la5nta/wl2k-go/fbb"
+	"github.com/cminyard/wl2k-go/fbb"
 )
 
 type PosReport struct {

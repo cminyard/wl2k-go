@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/la5nta/wl2k-go/transport"
+	"github.com/cminyard/wl2k-go/transport"
 )
 
 type tncConn struct {

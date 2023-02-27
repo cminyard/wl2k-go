@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/la5nta/wl2k-go/transport"
+	"github.com/cminyard/wl2k-go/transport"
 )
 
 // DialURL dials ardop2:// URLs

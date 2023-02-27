@@ -8,7 +8,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/la5nta/wl2k-go/transport"
+	"github.com/cminyard/wl2k-go/transport"
 )
 
 func TestImplementsRobust(t *testing.T) {
