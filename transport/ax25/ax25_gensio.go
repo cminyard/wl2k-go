@@ -96,6 +96,10 @@ func (e *gevent) Read(err int, data []byte, auxdata []string) uint64 {
 	return uint64(len(data))
 }
 
+func (e *gevent) Parmlog(log string) {
+        fmt.Printf("GENSIO PARM LOG: %s\n", log)
+}
+
 func gLoop() {
 	gax25Wait.Wait(1, nil)
 }
