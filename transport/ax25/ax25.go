@@ -44,7 +44,7 @@ func init() {
 	transport.RegisterDialer("serial-tnc", DefaultDialer)
 	transport.RegisterDialer("ax25+linux", DefaultDialer)
 	transport.RegisterDialer("ax25+serial-tnc", DefaultDialer)
-	transport.RegisterDialer("gax25", DefaultDialer)
+	transport.RegisterDialer("ax25+gensio", DefaultDialer)
 }
 
 type addr interface {
@@ -122,7 +122,7 @@ type Dialer struct {
 	Timeout time.Duration
 }
 
-// DialURL dials ax25://, ax25+linux://, serial-tnc:// and ax25+serial-tnc:// URLs.
+// DialURL dials ax25://, ax25+linux://, serial-tnc://, ax25+gensio://, and ax25+serial-tnc:// URLs.
 //
 // See DialURLContext.
 func (d Dialer) DialURL(url *transport.URL) (net.Conn, error) {
@@ -167,7 +167,7 @@ func (d Dialer) DialURLContext(ctx context.Context, url *transport.URL) (net.Con
 			NewConfig(hbaud, serialBaud),
 			nil,
 		)
-	case "gax25":
+	case "ax25+gensio":
 		ctx, cancel := context.WithTimeout(ctx, d.Timeout)
 		defer cancel()
 		conn, err := DialGensioAX25Context(ctx, url.Host, url.User.Username(), target, url.Params.Get("parms"), url.Params.Get("script"))
