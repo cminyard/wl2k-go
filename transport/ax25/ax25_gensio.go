@@ -133,6 +133,7 @@ func getBaseGensio(gensiostr, mycall string) (g gensio.Gensio, err error) {
 	} else {
 		defer func() {
 			if r := recover(); r != nil {
+				gmutex.Unlock()
 				err = fmt.Errorf("%s", r)
 			}
 		}()
@@ -164,6 +165,7 @@ func putBaseGensio() {
 		gax25 = nil
 		gax25str = ""
 		gax25call = ""
+		gax25Wait.Wake() // Stop the gLoop() thread.
 	}
 	gmutex.Unlock()
 }
@@ -354,7 +356,10 @@ func ListenGensioAX25(gensiostr, mycall string) (rc net.Listener, err error) {
 	l := &Listener{}
 	l.quit = make(chan bool)
 	l.localAddr = mycall
-	getBaseGensio(gensiostr, mycall)
+	_, err = getBaseGensio(gensiostr, mycall)
+	if err != nil {
+		return nil, err
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			rc = nil
