@@ -137,7 +137,7 @@ func getBaseGensio(gensiostr, mycall string) (g gensio.Gensio, err error) {
 				err = fmt.Errorf("%s", r)
 			}
 		}()
-		s := fmt.Sprintf("ax25(laddr=%s%s),%s", mycall, extraparms, gensiostr)
+		s := fmt.Sprintf("ax25(laddr=%s%s,heard),%s", mycall, extraparms, gensiostr)
 		g = gensio.NewGensio(s, gax25o, &gevent{})
 		g.OpenS()
 		gax25str = gensiostr
