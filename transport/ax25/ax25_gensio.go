@@ -69,19 +69,15 @@ var gensioHeard map[string]time.Time = make(map[string]time.Time)
 
 // UI frames come in here
 func (e *gevent) Read(err int, data []byte, auxdata []string) uint64 {
-	oobfound := false
 	srcaddrfound := false
 	var srcaddr string
 	for _, s := range(auxdata) {
-		if s == "oob" {
-			oobfound = true
-		}
 		if len(s) > 5 && s[0:5] == "addr:" {
 			srcaddr = s[5:]
 			srcaddrfound = true
 		}
 	}
-	if (!oobfound || !srcaddrfound) {
+	if (!srcaddrfound) {
 		return uint64(len(data))
 	}
 	ss := strings.Split(srcaddr, ",")
