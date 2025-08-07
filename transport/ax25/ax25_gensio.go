@@ -64,6 +64,7 @@ func (e *gevent) NewChannel(new_channel gensio.Gensio, auxdata []string) int {
 	}
 }
 
+// FIXME - Perhaps time things out after a while.
 var gensioHeardMutex sync.Mutex
 var gensioHeard map[string]time.Time = make(map[string]time.Time)
 
@@ -87,6 +88,21 @@ func (e *gevent) Read(err int, data []byte, auxdata []string) uint64 {
 	srcaddr = ss[2]
 
 	gensioHeardMutex.Lock()
+	// Limit the heard entries, remove the oldest value when it gets
+	// too big.
+	if (len(gensioHeard) > 50) {
+		var leastidx *string
+		var leastval time.Time
+		for idx, val := range(gensioHeard) {
+			if (leastidx == nil || val.Before(leastval)) {
+				leastidx = &idx
+				leastval = val
+			}
+		}
+		if (leastidx != nil) {
+			delete(gensioHeard, *leastidx)
+		}
+	}
 	gensioHeard[srcaddr] = time.Now()
 	gensioHeardMutex.Unlock()
 	return uint64(len(data))
